@@ -4,21 +4,21 @@ def parse_opt():
     parser = argparse.ArgumentParser()
     # # Data input settings
     parser.add_argument('--path_opt', type=str, default='cfgs/coco.yml',
-                     help='')    
+                     help='')
     parser.add_argument('--dataset', type=str, default='coco',
-                     help='')    
+                     help='')
     parser.add_argument('--input_json', type=str, default='data/coco/cap_coco.json',
                     help='path to the json file containing additional info and vocab')
     parser.add_argument('--input_dic', type=str, default='data/coco/dic_coco.json',
                     help='path to the json containing the preprocessed dataset')
     parser.add_argument('--image_path', type=str, default='/srv/share/datasets/coco/images',
-                    help='path to the h5file containing the image data') 
+                    help='path to the folder containing the image data')
     parser.add_argument('--proposal_h5', type=str, default='data/coco/coco_detection.h5',
-                    help='path to the json containing the detection result.') 
+                    help='path to the h5file containing the detection result.')
     parser.add_argument('--cnn_backend', type=str, default='res101',
-                    help='res101 or vgg16') 
+                    help='res101 or vgg16')
     parser.add_argument('--data_path', type=str, default='',
-                     help='')   
+                     help='')
 
     parser.add_argument('--decode_noc', type=bool, default=True,
                     help='decoding option: normal | noc')
@@ -63,7 +63,7 @@ def parse_opt():
                     help='clip gradients at this value')
     parser.add_argument('--drop_prob_lm', type=float, default=0.5,
                     help='strength of dropout in the Language Model RNN')
-    parser.add_argument('--self_critical', type=bool, default=False,        
+    parser.add_argument('--self_critical', type=bool, default=False,
                     help='whether use self critical training.')
     parser.add_argument('--seq_per_img', type=int, default=5,
                     help='number of captions to sample for each image during training. Done for efficiency since CNN forward pass is expensive. E.g. coco has 5 sents/image')
@@ -74,11 +74,11 @@ def parse_opt():
     # Schedule Sampling.
     parser.add_argument('--scheduled_sampling_start', type=int, default=-1,
                     help='at what iteration to start decay gt probability')
-    parser.add_argument('--scheduled_sampling_increase_every', type=int, default=5, 
+    parser.add_argument('--scheduled_sampling_increase_every', type=int, default=5,
                     help='every how many iterations thereafter to gt probability')
-    parser.add_argument('--scheduled_sampling_increase_prob', type=float, default=0.05, 
+    parser.add_argument('--scheduled_sampling_increase_prob', type=float, default=0.05,
                     help='How much to update the prob')
-    parser.add_argument('--scheduled_sampling_max_prob', type=float, default=0.25, 
+    parser.add_argument('--scheduled_sampling_max_prob', type=float, default=0.25,
                     help='Maximum scheduled sampling prob.')
 
     #Optimization: for the Language Model
@@ -86,11 +86,11 @@ def parse_opt():
                     help='what update to use? rmsprop|sgd|sgdmom|adagrad|adam')
     parser.add_argument('--learning_rate', type=float, default=5e-4,
                     help='learning rate')
-    parser.add_argument('--learning_rate_decay_start', type=int, default=1, 
+    parser.add_argument('--learning_rate_decay_start', type=int, default=1,
                     help='at what iteration to start decaying learning rate? (-1 = dont) (in epoch)')
-    parser.add_argument('--learning_rate_decay_every', type=int, default=3, 
+    parser.add_argument('--learning_rate_decay_every', type=int, default=3,
                     help='every how many iterations thereafter to drop LR?(in epoch)')
-    parser.add_argument('--learning_rate_decay_rate', type=float, default=0.8, 
+    parser.add_argument('--learning_rate_decay_rate', type=float, default=0.8,
                     help='every how many iterations thereafter to drop LR?(in epoch)')
     parser.add_argument('--optim_alpha', type=float, default=0.9,
                     help='alpha for adam')
@@ -119,7 +119,7 @@ def parse_opt():
                     help='weight_decay')
     # set training session
     parser.add_argument('--start_from', type=str, default=None,
-                    help="""continue training from saved model at this path. Path must contain files saved by previous training process: 
+                    help="""continue training from saved model at this path. Path must contain files saved by previous training process:
                         'infos.pkl'         : configuration;
                         'checkpoint'        : paths to model file(s) (created by tf).
                                               Note: this file contains absolute paths, be careful when moving files around;
@@ -143,9 +143,9 @@ def parse_opt():
     parser.add_argument('--language_eval', type=int, default=1,
                     help='Evaluate language as well (1 = yes, 0 = no)? BLEU/CIDEr/METEOR/ROUGE_L? requires coco-caption code from Github.')
     parser.add_argument('--load_best_score', type=int, default=1,
-                    help='Do we load previous best score when resuming training.')       
+                    help='Do we load previous best score when resuming training.')
     parser.add_argument('--disp_interval', type=int, default=100,
-                    help='how many iteration to display an loss.')       
+                    help='how many iteration to display an loss.')
     parser.add_argument('--losses_log_every', type=int, default=10,
                     help='how many iteration for log.')
     parser.add_argument('--cbs', type=bool, default=False,

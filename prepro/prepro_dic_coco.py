@@ -27,6 +27,7 @@ to get the prepro file for neural baby talk. we need 2 additional dictionaries.
 wtol: word to lemma, find the orignial form of the word.
 wtod: word to detection, find the detection label for the word.
 """
+import re
 import os
 import json
 import argparse
@@ -103,17 +104,17 @@ def build_vocab(imgs, params):
 
 def main(params):
 
-  coco_class_all = []
-  coco_class_name = open('data/coco/coco_class_name.txt', 'r')
-  for line in coco_class_name:
-      coco_class = line.rstrip("\n").split(', ')
-      coco_class_all.append(coco_class)
-
+  comma = re.compile('\s*,\s*')
+  coco_class_all = [
+    comma.split(line.strip())
+    for line in open('data/coco/coco_class_name.txt')
+  ]
   # word to detection label
-  wtod = {}
-  for i in range(len(coco_class_all)):
-    for w in coco_class_all[i]:
-      wtod[w] = i
+  wtod = {
+    word: label
+    for label, class_words in enumerate(coco_class_all)
+    for word in class_words
+  }
 
   imgs = json.load(open(params['input_json'], 'r'))
   imgs = imgs['images']
@@ -219,7 +220,6 @@ if __name__ == "__main__":
   parser.add_argument('--output_cap_json', default='data/coco_noc/cap_coco_noc_only.json', help='output json file')
 
   # options
-  parser.add_argument('--max_length', default=16, type=int, help='max length of a caption, in number of words. captions longer than this get clipped.')
   parser.add_argument('--word_count_threshold', default=5, type=int, help='only words that occur more than this number of times will be put in vocab')
 
   args = parser.parse_args()
