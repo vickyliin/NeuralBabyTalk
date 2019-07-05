@@ -9,7 +9,6 @@ import random
 import numpy as np
 from six.moves import xrange
 
-import h5py
 import misc.utils as utils
 import torch
 import torch.utils.data as data

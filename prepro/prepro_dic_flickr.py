@@ -13,17 +13,17 @@ Output: a json file and an hdf5 file
 The hdf5 file contains several fields:
 /images is (N,3,256,256) uint8 array of raw image data in RGB format
 /labels is (M,max_length) uint32 array of encoded labels, zero padded
-/label_start_ix and /label_end_ix are (N,) uint32 arrays of pointers to the 
+/label_start_ix and /label_end_ix are (N,) uint32 arrays of pointers to the
   first and last indices (in range 1..M) of labels for each image
 /label_length stores the length of the sequence for each of the M sequences
 
 The json file has a dict that contains:
 - an 'ix_to_word' field storing the vocab in form {ix:'word'}, where ix is 1-indexed
-- an 'images' field that is a list holding auxiliary information for each image, 
+- an 'images' field that is a list holding auxiliary information for each image,
   such as in particular the 'split' it was assigned to.
 """
 """
-to get the prepro file for neural baby talk. we need 2 additional dictionaries. 
+to get the prepro file for neural baby talk. we need 2 additional dictionaries.
 wtol: word to lemma, find the orignial form of the word.
 wtod: word to detection, find the detection label for the word.
 """
@@ -33,7 +33,6 @@ import argparse
 from random import shuffle, seed
 import string
 # non-standard dependencies:
-import h5py
 import numpy as np
 import torch
 import torchvision.models as models
@@ -90,7 +89,7 @@ def build_vocab(imgs, params):
     # additional special UNK token we will use below to map infrequent words to
     print('inserting the special UNK token')
     vocab.append('UNK')
-  
+
   imgs_new = []
   for img in imgs:
     img['final_captions'] = []
@@ -135,7 +134,7 @@ def main(params):
     else:
       img['split'] = 'rest'
   seed(123) # make reproducible
-  
+
   # create the vocab
   vocab, imgs_new = build_vocab(imgs_processed, params)
   itow = {i+1:w for i,w in enumerate(vocab)} # a 1-indexed vocab translation table
@@ -163,7 +162,7 @@ def main(params):
       if 'filename' in img: jimg['file_path'] = os.path.join(img['filepath'], img['filename']) # copy it over, might need
       if 'cocoid' in img: jimg['id'] = img['cocoid'] # copy over & mantain an id, if present (e.g. coco ids, useful)
     out['images'].append(jimg)
-  
+
   json.dump(out, open(params['outpu_dic_json'], 'w'))
   print('wrote ', params['outpu_dic_json'])
 
