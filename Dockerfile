@@ -1,24 +1,61 @@
-FROM pytorch/pytorch:0.4-cuda9-cudnn7-devel
-
-COPY . /workspace/neuralbabytalk
+FROM pytorch/pytorch:0.4.1-cuda9-cudnn7-devel
 
 # ----------------------------------------------------------------------------
-# -- install apt and pip dependencies
+# -- install apt
 # ----------------------------------------------------------------------------
 
 RUN apt-get update && \
     apt-get install -y \
     ant \
     ca-certificates-java \
-    nano \
     openjdk-8-jdk \
-    python2.7 \
     unzip \
     wget && \
     apt-get clean
 
 ENV JAVA_HOME /usr/lib/jvm/java-8-openjdk-amd64/
 RUN update-ca-certificates -f && export JAVA_HOME
+
+
+# ----------------------------------------------------------------------------
+# -- download pretrained imagenet weights for resnet-101
+# ----------------------------------------------------------------------------
+
+RUN mkdir -p /workspace/data/imagenet_weights && \
+    cd /workspace/data/imagenet_weights && \
+    wget --quiet https://www.dropbox.com/sh/67fc8n6ddo3qp47/AAACkO4QntI0RPvYic5voWHFa/resnet101.pth
+
+
+# ----------------------------------------------------------------------------
+# -- download corenlp jar
+# ----------------------------------------------------------------------------
+
+RUN mkdir -p /workspace/prepro && \
+    cd /workspace/prepro && \
+    wget --quiet https://nlp.stanford.edu/software/stanford-corenlp-full-2017-06-09.zip && \
+    unzip stanford-corenlp-full-2017-06-09.zip && \
+    rm stanford-corenlp-full-2017-06-09.zip
+
+COPY ./tools/coco-caption/get_stanford_models.sh /workspace/tools/coco-caption/get_stanford_models.sh
+RUN cd /workspace/tools/coco-caption && \
+    mkdir -p pycocoevalcap/spice/lib && \
+    sh get_stanford_models.sh
+
+
+# ----------------------------------------------------------------------------
+# -- download pretrained model
+# ----------------------------------------------------------------------------
+
+RUN mkdir -p /workspace/save && \
+    cd /workspace/save && \
+    wget --quiet https://www.dropbox.com/s/6buajkxm9oed1jp/coco_nbt_1024.tar.gz && \
+    tar -xzvf coco_nbt_1024.tar.gz && \
+    rm coco_nbt_1024.tar.gz
+
+
+# ----------------------------------------------------------------------------
+# -- install pip dependencies
+# ----------------------------------------------------------------------------
 
 RUN pip install Cython && pip install h5py \
     matplotlib \
@@ -29,67 +66,11 @@ RUN pip install Cython && pip install h5py \
     stanfordcorenlp \
     tensorflow \
     torchtext \
+    pdbpp \
+    jupyter \
     tqdm && python -c "import nltk; nltk.download('punkt')"
 
 
-# ----------------------------------------------------------------------------
-# -- download pretrained imagenet weights for resnet-101
-# ----------------------------------------------------------------------------
-
-RUN mkdir /workspace/neuralbabytalk/data/imagenet_weights && \
-    cd /workspace/neuralbabytalk/data/imagenet_weights && \
-    wget --quiet https://www.dropbox.com/sh/67fc8n6ddo3qp47/AAACkO4QntI0RPvYic5voWHFa/resnet101.pth
-
-
-# ----------------------------------------------------------------------------
-# -- download Karpathy's preprocessed captions datasets and corenlp jar
-# ----------------------------------------------------------------------------
-
-RUN cd /workspace/neuralbabytalk/data && \
-    wget --quiet http://cs.stanford.edu/people/karpathy/deepimagesent/caption_datasets.zip && \
-    unzip caption_datasets.zip && \
-    mv dataset_coco.json coco/ && \
-    mv dataset_flickr30k.json flickr30k/ && \
-    rm caption_datasets.zip dataset_flickr8k.json
-
-RUN cd /workspace/neuralbabytalk/prepro && \
-    wget --quiet https://nlp.stanford.edu/software/stanford-corenlp-full-2017-06-09.zip && \
-    unzip stanford-corenlp-full-2017-06-09.zip && \
-    rm stanford-corenlp-full-2017-06-09.zip
-
-RUN cd /workspace/neuralbabytalk/tools/coco-caption && \
-    sh get_stanford_models.sh
-
-# ----------------------------------------------------------------------------
-# -- download preprocessed COCO detection output HDF file and pretrained model
-# ----------------------------------------------------------------------------
-
-RUN cd /workspace/neuralbabytalk/data/coco && \
-    wget --quiet https://www.dropbox.com/s/2gzo4ops5gbjx5h/coco_detection.h5.tar.gz && \
-    tar -xzvf coco_detection.h5.tar.gz && \
-    rm coco_detection.h5.tar.gz
-
-RUN mkdir -p /workspace/neuralbabytalk/save && \
-    cd /workspace/neuralbabytalk/save && \
-    wget --quiet https://www.dropbox.com/s/6buajkxm9oed1jp/coco_nbt_1024.tar.gz && \
-    tar -xzvf coco_nbt_1024.tar.gz && \
-    rm coco_nbt_1024.tar.gz
+VOLUME ["/workspace/save", "/workspace/neuralbabytalk", "/opt/conda"]
 
 WORKDIR /workspace/neuralbabytalk
-RUN python prepro/prepro_dic_coco.py \
-    --input_json data/coco/dataset_coco.json \
-    --split normal \
-    --output_dic_json data/coco/dic_coco.json \
-    --output_cap_json data/coco/cap_coco.json && \
-    python prepro/prepro_dic_coco.py \
-    --input_json data/coco/dataset_coco.json \
-    --split robust \
-    --output_dic_json data/robust_coco/dic_coco.json \
-    --output_cap_json data/robust_coco/cap_coco.json && \
-    python prepro/prepro_dic_coco.py \
-    --input_json data/coco/dataset_coco.json \
-    --split noc \
-    --output_dic_json data/noc_coco/dic_coco.json \
-    --output_cap_json data/noc_coco/cap_coco.json
-
-EXPOSE 8888

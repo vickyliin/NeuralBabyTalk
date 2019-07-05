@@ -1,0 +1,21 @@
+version: '3'
+
+services:
+  dev:
+    build: .
+    volumes:
+      - .:/workspace/neuralbabytalk
+      - nbt-models:/workspace/save
+      - notebooks:/workspace/notebooks
+      - conda:/opt/conda
+    working_dir: /workspace/notebooks
+    command: jupyter-notebook --allow-root --ip 0.0.0.0 --NotebookApp.token=
+    expose:
+      - 8888
+    ports:
+      - '8888:8888'
+
+volumes:
+  nbt-models:
+  notebooks:
+  conda:
